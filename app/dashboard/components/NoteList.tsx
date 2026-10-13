@@ -3,8 +3,9 @@
 import styles from "../dashboard.module.css";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
-import { collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore";
 import { Trash2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 interface NoteData {
   title: string,
@@ -16,6 +17,7 @@ interface Note extends NoteData {
 }
 
 export default function NoteList() {
+  const {user} = useAuth()
   const [notes, setNotes] = useState<Note[]>([])
 
   const handleDelete = async (id: string) => {
@@ -28,7 +30,8 @@ export default function NoteList() {
   }
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'notes'), snapshot => {
+    const q= query(collection(db, 'notes'),where('userId','==', user?.uid))
+    const unsub = onSnapshot(q, snapshot => {
       const documents = snapshot.docs.map(doc => {
         return {
           id: doc.id,
