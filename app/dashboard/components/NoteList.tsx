@@ -2,7 +2,7 @@
 
 import styles from "../dashboard.module.css";
 
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useState } from "react";
 
@@ -20,28 +20,22 @@ export default function NoteList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchNotes = async () => {
-      try {
-        setLoading(true);
-        const snapshots = await getDocs(collection(db, "notes"));
-        setNotes(snapshots.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Note)));
-      }
-      catch (error) {
-        console.error("Error fetching notes:", error);
-      }
-      finally {
-        setLoading(false);
-      }
-    };
 
-    fetchNotes();
+    const unsub = onSnapshot(collection(db, "notes"), (snapshot) => {
+      setNotes(snapshot.docs.map((doc) => {
+        return { id: doc.id, ...doc.data() } as Note;
+      }));
+      setLoading(false);
+    });
+
+    return () => unsub();
   }, []);
 
   return (
     <div className={styles.noteList}>
       {loading ? (
         <div>Feching your notes...</div>
-      ):
+      ) :
         notes?.map((note) => (
           <div key={note.id} className={styles.noteCard}>
             <h3 className={styles.noteCardTitle}>{note.title}</h3>
