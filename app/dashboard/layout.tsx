@@ -4,13 +4,15 @@ import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 
 import styles from "./dashboard.module.css";
-import error from "next/dist/api/error";
+import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const {user}=useAuth();
+
   const handleLogout = async() => {
     try {
       await signOut(auth);
@@ -26,7 +28,7 @@ export default function DashboardLayout({
       <aside className={styles.sidebar}>
         <p className={styles.brand}>Write Club</p>
         <div className={styles.userBlock}>
-           {/* output user dets here later */}
+           {user && <span>{user.email}</span>} {}
         </div>
         <button className={styles.logoutButton} onClick={handleLogout}>
           Log out
